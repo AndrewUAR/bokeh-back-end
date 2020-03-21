@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema({
     minlength: [2, 'A last name must be at least 2 characters!'],
     validate: [validator.isAlpha, 'A last name can not contain numbers']
   },
+  email: {
+    type: String,
+    required: [true, 'Please provide your email address!'],
+    unique: [true, 'User with this email already exists!'],
+    trim: true,
+    lowercase: true,
+    validate: [validator.isEmail, 'Please provide a valid email!']
+  },
   profilePhoto: {
     type: String
   },
@@ -52,6 +60,20 @@ const userSchema = new mongoose.Schema({
     default: true,
     select: false
   }
+});
+
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
+});
+
+userSchema.pre('save', function(next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
 });
 
 const User = mongoose.model('User', userSchema);
