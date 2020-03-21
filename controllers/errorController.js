@@ -32,3 +32,33 @@ const sendErrorDev = (err, req, res) => {
     msg: err.message
   });
 };
+
+const sendErrorProd = (err, req, res) => {
+  if (req.originalUrl.startsWith('/api')) {
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message
+      });
+    }
+
+    console.log('ERROR', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Something went very wrong!'
+    });
+  }
+
+  if (err.isOperational) {
+    return res.status(err.statusCode).render('error', {
+      title: 'Something went wrong',
+      msg: err.message
+    });
+  }
+  console.log('ERROR', err);
+
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong',
+    msg: 'Please try again later.'
+  });
+};
