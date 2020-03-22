@@ -12,10 +12,10 @@ exports.getAll = Model =>
     });
   });
 
-exports.getOne = (Model, popOptions) => 
+exports.getOne = (Model, popOptions) =>
   catchAsync(async (req, res, next) => {
     let query = Model.findById(req.params.id);
-    // if (popOptions) query = query.populate(popOptions);
+    if (popOptions) query = query.populate(popOptions);
     const document = await query;
 
     if (!document) {
@@ -39,7 +39,7 @@ exports.createOne = Model =>
     });
   });
 
-exports.updateOne = Model => 
+exports.updateOne = Model =>
   catchAsync(async (req, res, next) => {
     const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -55,7 +55,7 @@ exports.updateOne = Model =>
     });
   });
 
-exports.deleteOne = Model => 
+exports.deleteOne = Model =>
   catchAsync(async (req, res, next) => {
     const document = await Model.findByIdAndDelete(req.params.id);
     if (!document) {
