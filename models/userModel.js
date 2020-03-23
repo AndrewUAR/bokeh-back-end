@@ -31,13 +31,12 @@ const userSchema = new mongoose.Schema({
   profilePhoto: {
     type: String
   },
-  languages: [String],
-  locations: [[Number]],
-  role: {
-    type: String,
-    enum: ['user', 'photographer', 'admin'],
-    default: 'user'
-  },
+  favoritePhotographers: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }
+  ],
   password: {
     type: String,
     required: [true, 'Please provide a password!'],
@@ -54,6 +53,25 @@ const userSchema = new mongoose.Schema({
       message: 'Password does not match.'
     }
   },
+  ratingsQuantity: {
+    type: Number,
+    default: 0
+  },
+  ratingsAverage: {
+    type: Number,
+    default: 0,
+    min: [1, 'Rating must be above 1.0'],
+    max: [5, 'Rating must be below 5.0'],
+    set: val => Math.round(val * 10) / 10
+  },
+  languages: [String],
+  locations: [[Number]],
+  role: {
+    type: String,
+    enum: ['user', 'photographer', 'admin'],
+    default: 'user'
+  },
+  
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
