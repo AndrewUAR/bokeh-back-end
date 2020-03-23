@@ -31,6 +31,8 @@ const userSchema = new mongoose.Schema({
   profilePhoto: {
     type: String
   },
+  languages: [String],
+  locations: [[Number]],
   role: {
     type: String,
     enum: ['user', 'photographer', 'admin'],
@@ -59,6 +61,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
     select: false
+  },
+  activePhotographer: {
+    type: Boolean,
+    default: false,
+    select: true
   }
 });
 
