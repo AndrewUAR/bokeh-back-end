@@ -1,9 +1,11 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
-exports.getAll = Model =>
+exports.getAll = (Model, role, popOptions) =>
   catchAsync(async (req, res, next) => {
-    const document = await Model.find();
+    const document = role
+      ? await Model.find({ role: role }).populate(popOptions)
+      : await Model.find().populate(popOptions);
 
     res.status(200).json({
       status: 'success',
@@ -21,7 +23,6 @@ exports.getOne = (Model, popOptions) =>
     if (!document) {
       return next(new AppError('No document found with that ID', 404));
     }
-
     res.status(200).json({
       status: 'succes',
       data: document
