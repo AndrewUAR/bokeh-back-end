@@ -2,6 +2,11 @@ const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
+const photoSessionRouter = require('./routes/photoSessionRoutes');
+const photographerRouter = require('./routes/photographerRoutes');
+const albumRouter = require('./routes/albumRoutes');
+const bookingRouter = require('./routes/bookingRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
@@ -19,7 +24,17 @@ const limiter = rateLimit({
 
 app.use('/api', limiter);
 
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/photographers', photographerRouter);
+app.use('/api/v1/photoSessions', photoSessionRouter);
+app.use('/api/v1/albums', albumRouter);
+app.use('/api/v1/bookings', bookingRouter);
 
 app.use(globalErrorHandler);
 
