@@ -6,6 +6,22 @@ const photographerSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'User'
     },
+    bio: {
+      type: String,
+      required: [true, 'A bio can not be blank!'],
+      trim: true,
+      maxLength: [250, 'A bio can not be longer than 250 characters!'],
+      minLength: [100, 'A bio can not be shorter than 100 characters!']
+    },
+    languages: [String],
+    locations: {
+      type: [[Number]],
+      required: [true, 'Photographer must have a location!']
+    },
+    specialties: {
+      type: [String],
+      required: [true, 'A bio can not be blank!']
+    },
     ratingsQuantity: {
       type: Number,
       default: 0
@@ -13,12 +29,14 @@ const photographerSchema = new mongoose.Schema(
     ratingsAverage: {
       type: Number,
       default: 0,
-      min: [1, 'Rating must be above 1.0'],
+      min: [1, 'Rating must be above 0.0'],
       max: [5, 'Rating must be below 5.0'],
       set: val => Math.round(val * 10) / 10
     },
-    languages: [String],
-    locations: [[Number]]
+    hired: {
+      type: Number,
+      default: 0
+    }
   },
   {
     toJSON: {
@@ -32,6 +50,18 @@ const photographerSchema = new mongoose.Schema(
 
 photographerSchema.virtual('reviews', {
   ref: 'Review',
+  localField: '_id',
+  foreignField: 'photographer'
+});
+
+photographerSchema.virtual('photoSessions', {
+  ref: 'PhotoSession',
+  localField: '_id',
+  foreignField: 'photographer'
+});
+
+photographerSchema.virtual('albums', {
+  ref: 'Album',
   localField: '_id',
   foreignField: 'photographer'
 });
