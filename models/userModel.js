@@ -3,88 +3,85 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: [true, 'First name is required!'],
-    trim: true,
-    maxlength: [20, 'A first name must have less or equal to 20 characters!'],
-    minlength: [2, 'A first name must be at least 2 characters!'],
-    validate: [validator.isAlpha, "A first name can't contain numbers"]
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required!'],
-    trim: true,
-    maxlength: [20, 'A last name must have less or equal to 20 characters!'],
-    minlength: [2, 'A last name must be at least 2 characters!'],
-    validate: [validator.isAlpha, 'A last name can not contain numbers']
-  },
-  email: {
-    type: String,
-    required: [true, 'Please provide your email address!'],
-    unique: [true, 'User with this email already exists!'],
-    trim: true,
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email!']
-  },
-  profilePhoto: {
-    type: String
-  },
-  favoritePhotographers: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User'
+const userSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: [true, 'First name is required!'],
+      trim: true,
+      maxlength: [20, 'A first name must have less or equal to 20 characters!'],
+      minlength: [2, 'A first name must be at least 2 characters!'],
+      validate: [validator.isAlpha, "A first name can't contain numbers"]
+    },
+    lastName: {
+      type: String,
+      required: [true, 'Last name is required!'],
+      trim: true,
+      maxlength: [20, 'A last name must have less or equal to 20 characters!'],
+      minlength: [2, 'A last name must be at least 2 characters!'],
+      validate: [validator.isAlpha, 'A last name can not contain numbers']
+    },
+    email: {
+      type: String,
+      required: [true, 'Please provide your email address!'],
+      unique: [true, 'User with this email already exists!'],
+      trim: true,
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email!']
+    },
+    profilePhoto: {
+      type: String
+    },
+    favoritePhotographers: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
+    ],
+    password: {
+      type: String,
+      required: [true, 'Please provide a password!'],
+      minlength: 8,
+      select: false
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please confirm your password!'],
+      validate: {
+        validator: function(el) {
+          return el === this.password;
+        },
+        message: 'Password does not match.'
+      }
+    },
+    role: {
+      type: String,
+      enum: ['user', 'photographer', 'admin'],
+      default: 'user'
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false
     }
-  ],
-  password: {
-    type: String,
-    required: [true, 'Please provide a password!'],
-    minlength: 8,
-    select: false
   },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please confirm your password!'],
-    validate: {
-      validator: function(el) {
-        return el === this.password;
-      },
-      message: 'Password does not match.'
+  {
+    toJSON: {
+      virtuals: true
+    },
+    toObject: {
+      virtuals: true
     }
-  },
-  ratingsQuantity: {
-    type: Number,
-    default: 0
-  },
-  ratingsAverage: {
-    type: Number,
-    default: 0,
-    min: [1, 'Rating must be above 1.0'],
-    max: [5, 'Rating must be below 5.0'],
-    set: val => Math.round(val * 10) / 10
-  },
-  languages: [String],
-  locations: [[Number]],
-  role: {
-    type: String,
-    enum: ['user', 'photographer', 'admin'],
-    default: 'user'
-  },
-  
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  active: {
-    type: Boolean,
-    default: true,
-    select: false
-  },
-  activePhotographer: {
-    type: Boolean,
-    default: false,
-    select: true
   }
+);
+
+userSchema.virtual('photographer', {
+  ref: 'Photographer',
+  localField: '_id',
+  foreignField: 'user'
 });
 
 userSchema.pre('save', async function(next) {
