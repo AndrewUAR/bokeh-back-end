@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
-const User = require('./userModel');
-const PhotoSession = require('./photoSessionModel');
+const Photographer = require('./photographerModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -22,18 +21,13 @@ const reviewSchema = new mongoose.Schema(
     },
     photographer: {
       type: mongoose.Schema.ObjectId,
-      ref: 'User',
+      ref: 'Photographer',
       required: [true, 'Review must belong to photographer!']
     },
     user: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: [true, 'Review must belong to user!']
-    },
-    photoSession: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'PhotoSession',
-      required: [true, 'Review must belong to photo session!']
     }
   },
   {
@@ -45,6 +39,44 @@ const reviewSchema = new mongoose.Schema(
     }
   }
 );
+
+reviewSchema.statics.calcAverageRatings = async function(photographerId) {
+  const stats = await this.aggregate([
+    {
+      $match: { photographer: photographerId }
+    },
+    {
+      $group: {
+        _id: '$photographer',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' }
+      }
+    }
+  ]);
+  if (stats.length > 0) {
+    await Photographer.findByIdAndUpdate(photographerId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating
+    });
+  } else {
+    await Photographer.findByIdAndUpdate(photographerId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 0
+    });
+  }
+};
+
+reviewSchema.post('save', function() {
+  this.constructor.calcAverageRatings(this.photographer);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function(next) {
+  this.r = await this.findOne();
+});
+
+reviewSchema.post(/^findOneAnd/, async function() {
+  await this.r.constructor.calcAverageRatings(this.r.photographer);
+});
 
 const Review = mongoose.model('Review', reviewSchema);
 module.exports = Review;
