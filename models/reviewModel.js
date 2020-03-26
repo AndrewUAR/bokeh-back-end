@@ -22,7 +22,7 @@ const reviewSchema = new mongoose.Schema(
     photographer: {
       type: mongoose.Schema.ObjectId,
       ref: 'Photographer',
-      required: [true, 'Review must belong to photographer!']
+      required: [false, 'Review must belong to photographer!']
     },
     user: {
       type: mongoose.Schema.ObjectId,
