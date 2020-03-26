@@ -12,6 +12,14 @@ const albumSchema = new mongoose.Schema({
   images: {
     type: [String],
     required: [true, 'Album can not be empty']
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now()
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now()
   }
 });
 
