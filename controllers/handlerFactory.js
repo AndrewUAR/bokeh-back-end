@@ -1,11 +1,12 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const User = require('../models/userModel');
+const Photographer = require('../models/photographerModel');
 
-exports.getAll = (Model, role, popOptions) =>
+exports.getAll = (Model, userRole, popOptions) =>
   catchAsync(async (req, res, next) => {
-    const document = role
-      ? await Model.find({ role: role }).populate(popOptions)
-      : await Model.find().populate(popOptions);
+    const role = { role: userRole };
+    const document = await Model.find(role).populate(popOptions);
 
     res.status(200).json({
       status: 'success',
@@ -24,14 +25,21 @@ exports.getOne = (Model, popOptions) =>
       return next(new AppError('No document found with that ID', 404));
     }
     res.status(200).json({
-      status: 'succes',
+      status: 'success',
       data: document
     });
   });
 
 exports.createOne = Model =>
   catchAsync(async (req, res, next) => {
-    const document = await Model.create(req.body);
+    let document = await Model.create(req.body);
+    if (Model === Photographer) {
+      req.params.id = req.body.user;
+      req.body = { role: 'photographer' };
+      document = await User.findByIdAndUpdate(req.params.id, req.body).populate(
+        'photographer'
+      );
+    }
     res.status(201).json({
       status: 'success',
       data: {
