@@ -1,12 +1,12 @@
 const PhotoSession = require('../models/photoSessionModel');
 const factory = require('./handlerFactory');
 
-exports.getAllUsers = factory.getAll(PhotoSession);
+exports.getAllPhotoSessions = factory.getAll(PhotoSession);
 
-exports.getUser = factory.getOne(PhotoSession);
+exports.getPhotoSession = factory.getOne(PhotoSession);
 
-exports.createUser = factory.createOne(PhotoSession);
+exports.createPhotoSession = factory.createOne(PhotoSession);
 
-exports.updateUser = factory.updateOne(PhotoSession);
+exports.updatePhotoSession = factory.updateOne(PhotoSession);
 
-exports.deleteUser = factory.deleteOne(PhotoSession);
+exports.deletePhotoSession = factory.deleteOne(PhotoSession);
