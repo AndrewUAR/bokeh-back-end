@@ -5,7 +5,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(photoSessionController.getAllphotoSession)
+  .get(photoSessionController.getAllPhotoSessions)
   .post(photoSessionController.createPhotoSession);
 
 router
