@@ -4,11 +4,12 @@ const photographerSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      unique: true
     },
     bio: {
       type: String,
-      required: [true, 'A bio can not be blank!'],
+      required: [false, 'A bio can not be blank!'],
       trim: true,
       maxLength: [250, 'A bio can not be longer than 250 characters!'],
       minLength: [100, 'A bio can not be shorter than 100 characters!']
@@ -16,11 +17,11 @@ const photographerSchema = new mongoose.Schema(
     languages: [String],
     locations: {
       type: [[Number]],
-      required: [true, 'Photographer must have a location!']
+      required: [false, 'Photographer must have a location!']
     },
     specialties: {
       type: [String],
-      required: [true, 'A bio can not be blank!']
+      required: [false, 'A bio can not be blank!']
     },
     ratingsQuantity: {
       type: Number,
@@ -28,7 +29,7 @@ const photographerSchema = new mongoose.Schema(
     },
     ratingsAverage: {
       type: Number,
-      default: 0,
+      default: 5,
       min: [1, 'Rating must be above 0.0'],
       max: [5, 'Rating must be below 5.0'],
       set: val => Math.round(val * 10) / 10
