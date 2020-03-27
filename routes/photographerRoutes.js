@@ -1,17 +1,18 @@
 const express = require('express');
 const photographerController = require('../controllers/photographerController');
+const authController = require('../controllers/authController');
 
 const router = express.Router();
 
 router
   .route('/')
   .get(photographerController.getAllPhotographers)
-  .post(photographerController.createPhotographer);
+  .post(authController.protect, photographerController.createPhotographer);
 
 router
   .route('/:id')
   .get(photographerController.getPhotographer)
-  .patch(photographerController.updatePhotographer)
-  .delete(photographerController.deletePhotographer);
+  .patch(authController.protect, photographerController.updatePhotographer)
+  .delete(authController.protect, photographerController.deletePhotographer);
 
 module.exports = router;
