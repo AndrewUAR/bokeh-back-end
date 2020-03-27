@@ -34,11 +34,10 @@ exports.createOne = Model =>
   catchAsync(async (req, res, next) => {
     let document = await Model.create(req.body);
     if (Model === Photographer) {
-      req.params.id = req.body.user;
-      req.body = { role: 'photographer' };
-      document = await User.findByIdAndUpdate(req.params.id, req.body).populate(
-        'photographer'
-      );
+      //change req.params.id to req.user.id
+      document = await User.findByIdAndUpdate(req.user.id, {
+        role: 'photographer'
+      }).populate('photographer');
     }
     res.status(201).json({
       status: 'success',
