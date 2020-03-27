@@ -11,7 +11,11 @@ router
 router
   .route('/:id')
   .get(albumController.getAlbum)
-  .patch(albumController.updateAlbum)
+  .patch(
+    albumController.uploadAlbumImages,
+    albumController.resizeAlbumImages,
+    albumController.updateAlbum
+  )
   .delete(albumController.deleteAlbum);
 
 module.exports = router;
