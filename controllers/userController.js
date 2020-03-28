@@ -35,7 +35,7 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
   const file = dataUri(req).content;
   req.file = await cloudinary.v2.uploader.upload(file, {
-    public_id: `users/user-${req.user.id}-${Date.now()}`,
+    public_id: `bokeh/users/user-${req.user.id}-${Date.now()}`,
     gravity: 'face',
     width: 500,
     height: 500,
@@ -62,7 +62,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
   }
 
-  const filteredBody = filterObj(req.body, 'name', 'email');
+  const filteredBody = filterObj(req.body, 'firstName', 'email');
   if (req.file) filteredBody.profilePhoto = req.file.secure_url;
   const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
