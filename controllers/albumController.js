@@ -5,15 +5,13 @@ const Datauri = require('datauri');
 const Album = require('../models/albumModel');
 const factory = require('./handlerFactory.js');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 const multerStorage = multer.memoryStorage();
 const datauri = new Datauri();
 
-const dataUri = req =>
-  datauri.format(
-    path.extname(req.file.originalname).toString(),
-    req.file.buffer
-  );
+const dataUri = img =>
+  datauri.format(path.extname(img.originalname).toString(), img.buffer);
 
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
@@ -31,19 +29,70 @@ const upload = multer({
 exports.uploadAlbumImages = upload.fields([{ name: 'images', maxCount: 10 }]);
 
 exports.resizeAlbumImages = catchAsync(async (req, res, next) => {
-  // if (!req.files.images) return next();
-  // console.log(req.files.images[0].originalname);
-  // const file = dataUri(req).content;
-  // req.body.images = await cloudinary.v2.uploader.upload(file, {
-  //   public_id: `users/user-${req.user.id}-${Date.now()}`,
-  //   gravity: 'face',
-  //   width: 500,
-  //   height: 500,
-  //   crop: 'thumb'
-  // });
+  if (!req.files) return next();
+  const files = req.files.images.map(img => {
+    return dataUri(img).content;
+  });
+  const uploadedFiles = await Promise.all(
+    files.map(file => {
+      return cloudinary.v2.uploader.upload(file, {
+        public_id: `bokeh/users-album/user-${req.user.id}/${
+          req.user.id
+        }-${Date.now()}}`
+      });
+    })
+  );
+  req.body.images = uploadedFiles.map(file => {
+    return file.secure_url;
+  });
+  next();
   // next();
   // const files = req.files.images.map(img => dataUri(img).content);
   // console.log(files);
+});
+
+exports.updateAlbumImage = catchAsync(async (req, res, next) => {
+  const album = await Album.findByIdAndUpdate(
+    req.params.id,
+    {
+      $push: { images: req.body.images }
+    },
+    {
+      new: true,
+      runValidators: true
+    }
+  );
+  res.status(200).json({
+    status: 'success',
+    data: album
+  });
+  next();
+});
+
+exports.deleteAlbumImage = catchAsync(async (req, res, next) => {
+  if (!req.body.images) next();
+  const images = req.body.images.map(img => {
+    return img.match(/([a-zA-Z0-9]+-[0-9]{9,})/g);
+  });
+
+  await Promise.all(
+    images.map(image => {
+      return cloudinary.v2.uploader.destroy(image, result => {
+        console.log(result);
+      });
+    })
+  );
+
+  const album = await Album.findByIdAndUpdate(
+    req.params.id,
+    { $pullAll: { images: req.body.images } },
+    { new: true }
+  );
+  res.status(200).json({
+    status: 'success',
+    data: album
+  });
+  next();
 });
 
 exports.getAllAlbums = factory.getAll(Album);
