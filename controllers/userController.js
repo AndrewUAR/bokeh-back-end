@@ -6,6 +6,7 @@ const User = require('../models/userModel');
 const factory = require('./handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const filterObj = require('../utils/filterObj');
 
 const multerStorage = multer.memoryStorage();
 const datauri = new Datauri();
@@ -44,14 +45,6 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   next();
 });
 
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach(el => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
-  });
-  return newObj;
-};
-
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -61,8 +54,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       )
     );
   }
-
-  const filteredBody = filterObj(req.body, 'firstName', 'email');
+  const allowedFields = ['firstName', 'lastName', 'email'];
+  const filteredBody = filterObj(req.body, allowedFields);
   if (req.file) filteredBody.profilePhoto = req.file.secure_url;
   const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
@@ -85,6 +78,11 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null
   });
 });
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
 exports.getAllUsers = factory.getAll(User);
 
