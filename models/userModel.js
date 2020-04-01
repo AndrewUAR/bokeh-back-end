@@ -59,6 +59,39 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'photographer', 'admin'],
       default: 'user'
     },
+    photographer: new mongoose.Schema({
+      bio: {
+        type: String,
+        required: [true, 'A bio can not be blank!'],
+        trim: true,
+        maxLength: [250, 'A bio can not be longer than 250 characters!'],
+        minLength: [100, 'A bio can not be shorter than 100 characters!']
+      },
+      languages: [String],
+      locations: {
+        type: [[Number]],
+        required: [true, 'Photographer must have a location!']
+      },
+      specialties: {
+        type: [String],
+        required: [true, 'A bio can not be blank!']
+      },
+      ratingsQuantity: {
+        type: Number,
+        default: 0
+      },
+      ratingsAverage: {
+        type: Number,
+        default: 5,
+        min: [1, 'Rating must be above 0.0'],
+        max: [5, 'Rating must be below 5.0'],
+        set: val => Math.round(val * 10) / 10
+      },
+      hired: {
+        type: Number,
+        default: 0
+      }
+    }),
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -78,10 +111,22 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.virtual('photographer', {
-  ref: 'Photographer',
+userSchema.virtual('reviews', {
+  ref: 'Review',
   localField: '_id',
-  foreignField: 'user'
+  foreignField: 'photographer'
+});
+
+userSchema.virtual('photoSessions', {
+  ref: 'PhotoSession',
+  localField: '_id',
+  foreignField: 'photographer'
+});
+
+userSchema.virtual('albums', {
+  ref: 'Album',
+  localField: '_id',
+  foreignField: 'photographer'
 });
 
 userSchema.pre('save', async function(next) {
@@ -100,6 +145,7 @@ userSchema.pre('save', function(next) {
 
 userSchema.pre('/^find/', function(next) {
   this.find({ active: { $ne: false } });
+  next();
 });
 
 userSchema.methods.correctPassword = async function(
@@ -131,6 +177,14 @@ userSchema.methods.createPasswordResetToken = function() {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
+};
+
+userSchema.methods.toJSON = function() {
+  const obj = this.toObject();
+  if (obj.role === 'user' || obj.role === 'admin') {
+    delete obj.photographer;
+  }
+  return obj;
 };
 
 const User = mongoose.model('User', userSchema);
