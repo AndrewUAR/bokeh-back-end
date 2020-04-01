@@ -7,7 +7,7 @@ const albumSchema = new mongoose.Schema({
   },
   photographer: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Photographer'
+    ref: 'User'
   },
   images: [String],
   createdAt: {
