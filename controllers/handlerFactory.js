@@ -1,17 +1,16 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const User = require('../models/userModel');
-const Photographer = require('../models/photographerModel');
+const filterObj = require('../utils/filterObj');
 
-exports.getAll = (Model, userRole, popOptions) =>
+exports.getAll = (Model, userRole) =>
   catchAsync(async (req, res, next) => {
-    const role = { role: userRole };
-    const document = await Model.find(role).populate(popOptions);
+    const role = userRole ? { role: userRole } : {};
+    const documents = await Model.find(role);
 
     res.status(200).json({
       status: 'success',
-      results: document.length,
-      data: document
+      results: documents.length,
+      data: documents
     });
   });
 
@@ -26,19 +25,15 @@ exports.getOne = (Model, popOptions) =>
     }
     res.status(200).json({
       status: 'success',
-      data: document
+      data: {
+        document
+      }
     });
   });
 
 exports.createOne = Model =>
   catchAsync(async (req, res, next) => {
-    let document = await Model.create(req.body);
-    if (Model === Photographer) {
-      //change req.params.id to req.user.id
-      document = await User.findByIdAndUpdate(req.user.id, {
-        role: 'photographer'
-      }).populate('photographer');
-    }
+    const document = await Model.create(req.body);
     res.status(201).json({
       status: 'success',
       data: {
