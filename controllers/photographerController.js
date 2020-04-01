@@ -1,24 +1,109 @@
-const Photographer = require('../models/photographerModel');
 const factory = require('./handlerFactory');
 const User = require('../models/userModel');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
+const filterObj = require('../utils/filterObj');
 
-exports.getAllPhotographers = factory.getAll(User, 'photographer', {
-  path: 'photographer',
-  select: '-__v',
-  populate: { path: 'reviews albums photoSessions', select: '-__v' }
+exports.getAllPhotographers = factory.getAll(User, 'photographer');
+
+exports.getPhotographer = catchAsync(async (req, res, next) => {
+  const query = User.findById(req.params.id);
+  const document = await query.populate('reviews photoSessions albums');
+  if (!document || document.role === 'user' || document.role === 'admin') {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: document
+  });
 });
 
-exports.getPhotographer = factory.getOne(User, {
-  path: 'photographer',
-  populate: { path: 'reviews albums photoSessions' }
+const allowedFields = ['bio', 'languages', 'locations', 'specialties'];
+
+exports.createPhotographerProfile = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
+  }
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(
+      new AppError(
+        'This route is not for password updates. Please use /updateMyPassword',
+        400
+      )
+    );
+  }
+  if (user.hideProfile === true) {
+    return next(
+      new AppError(
+        'This user already has a photographer profile. Please reactivate it!'
+      )
+    );
+  }
+  const filteredBody = { photographer: filterObj(req.body, allowedFields) };
+  filteredBody.role = 'photographer';
+
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, filteredBody);
+  res.status(201).json({
+    status: 'success',
+    data: updatedUser
+  });
 });
 
-exports.setUserId = (req, res, next) => {
-  req.params.user = req.user.id;
-};
+exports.updatePhotographerProfile = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
+  }
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(
+      new AppError(
+        'This route is not for password updates. Please use /updateMyPassword',
+        400
+      )
+    );
+  }
+  const filteredBody = { photographer: filterObj(req.body, allowedFields) };
 
-exports.createPhotographer = factory.createOne(Photographer);
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, filteredBody);
+  res.status(201).json({
+    status: 'success',
+    data: updatedUser
+  });
+});
 
-exports.updatePhotographer = factory.updateOne(Photographer);
+exports.activateProfile = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
+  }
+  if (user.hideProfile === false && user.role === 'photographer') {
+    return next(
+      new AppError('This photographer account is already activated.')
+    );
+  }
+  const body = { role: 'photographer', hideProfile: false };
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, body);
+  res.status(201).json({
+    status: 'success',
+    data: updatedUser
+  });
+});
 
-exports.deletePhotographer = factory.deleteOne(Photographer);
+exports.deactivatePhotographerProfile = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
+  }
+  if (user.hideProfile === true && user.role === 'user') {
+    return next(
+      new AppError('This photographer account is already deactivated.')
+    );
+  }
+  const body = { role: 'user', hideProfile: true };
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, body);
+  res.status(201).json({
+    status: 'success',
+    data: updatedUser
+  });
+});
