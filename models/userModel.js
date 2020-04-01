@@ -92,6 +92,10 @@ const userSchema = new mongoose.Schema(
         default: 0
       }
     }),
+    hideProfile: {
+      type: Boolean,
+      default: false
+    },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -184,6 +188,7 @@ userSchema.methods.toJSON = function() {
   if (obj.role === 'user' || obj.role === 'admin') {
     delete obj.photographer;
   }
+  delete obj.hideProfile;
   return obj;
 };
 
