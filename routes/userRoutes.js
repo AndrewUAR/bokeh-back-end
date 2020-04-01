@@ -13,6 +13,8 @@ router.patch('/resetPassword/:token', authController.resetPassword);
 
 router.use(authController.protect);
 
+router.get('/me', userController.getMe, userController.getUser);
+
 router.patch(
   '/updateMe',
   userController.uploadUserPhoto,
@@ -20,9 +22,11 @@ router.patch(
   userController.updateMe
 );
 
-router.use(authController.protect);
+router.delete('/deleteMe', userController.deleteMe);
 
 router.patch('/updateMyPassword', authController.updatePassword);
+
+router.use(authController.restrictTo('user'));
 
 router
   .route('/')
