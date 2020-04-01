@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Photographer = require('./photographerModel');
+const User = require('./userModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -54,14 +54,18 @@ reviewSchema.statics.calcAverageRatings = async function(photographerId) {
     }
   ]);
   if (stats.length > 0) {
-    await Photographer.findByIdAndUpdate(photographerId, {
-      ratingsQuantity: stats[0].nRating,
-      ratingsAverage: stats[0].avgRating
+    await User.findByIdAndUpdate(photographerId, {
+      photographer: {
+        ratingsQuantity: stats[0].nRating,
+        ratingsAverage: stats[0].avgRating
+      }
     });
   } else {
-    await Photographer.findByIdAndUpdate(photographerId, {
-      ratingsQuantity: 0,
-      ratingsAverage: 0
+    await User.findByIdAndUpdate(photographerId, {
+      photographer: {
+        ratingsQuantity: 0,
+        ratingsAverage: 0
+      }
     });
   }
 };
