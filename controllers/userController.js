@@ -13,7 +13,7 @@ const datauri = new Datauri();
 
 const dataUri = req =>
   datauri.format(
-    path.extname(req.file.originalname).toString(),
+    '.jpg',
     req.file.buffer
   );
 
@@ -34,6 +34,7 @@ exports.uploadUserPhoto = upload.single('profilePhoto');
 
 exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
+  console.log(req.file)
   const file = dataUri(req).content;
   req.file = await cloudinary.v2.uploader.upload(file, {
     public_id: `bokeh/users/user-${req.user.id}-${Date.now()}`,
@@ -56,8 +57,11 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   }
   const allowedFields = ['firstName', 'lastName', 'email'];
   const filteredBody = filterObj(req.body, allowedFields);
-  if (req.file) filteredBody.profilePhoto = req.file.secure_url;
-  const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+  if (req.file) {
+    filteredBody.profilePhoto = req.file.secure_url
+    console.log('here2')
+  };
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true
   });
@@ -65,7 +69,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      user: updateUser
+      user: updatedUser
     }
   });
 });

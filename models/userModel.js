@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema(
       validate: [validator.isEmail, 'Please provide a valid email!']
     },
     profilePhoto: {
-      type: String
+      type: String,
+      default: 'https://res.cloudinary.com/dzgz9xv5w/image/upload/v1587688826/panorama/default-user-icon_gkcwk1.jpg'
     },
     favoritePhotographers: [
       {

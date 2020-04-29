@@ -23,10 +23,10 @@ const createSendToken = (user, statusCode, req, res) => {
   });
 
   user.password = undefined;
+  // user = (({firstName, lastName, email, _id, profilePhoto, role}) => ({firstName, lastName, email, _id, profilePhoto, role}))(user);
 
   res.status(statusCode).json({
     status: 'success',
-    token,
     data: {
       user
     }
@@ -52,7 +52,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password -favoritePhotographers -__v');
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
@@ -61,7 +61,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.logout = (req, res) => {
   res.cookie('jwt', 'logged out', {
-    expires: new Date(Date.now() + 10 * 1000),
+    expires: new Date(Date.now() + 1 * 1000),
     httpOnly: true
   });
   res.status(200).json({ status: 'success' });

@@ -1,5 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+
 const cloudinary = require('cloudinary');
 const rateLimit = require('express-rate-limit');
 const userRouter = require('./routes/userRoutes');
@@ -11,6 +14,31 @@ const bookingRouter = require('./routes/bookingRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
+
+// app.use(cors());
+
+// app.use(
+//   cors({
+//     origin: 'https://localhost:3000',
+//     credentials: true
+//   })
+// );
+
+app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
+// var corsOptions = {
+//   origin: 'http://localhost:3000'
+// }
+
+// app.options('*', cors());
+
+app.use(cookieParser());
+
+// app.use((req, res) => {
+//   console.log('here');
+//   const store = createStore(reducer, undefined, autoRehydrate());
+//   console.log(store)
+//   persistStore(store, { storage: new CookieStorage({ cookies: req.cookies }) })
+// })
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
