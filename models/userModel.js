@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, 'Please provide a valid email!']
     },
+    emailConfirmed: {
+      type: Boolean,
+      default: false
+    },
     profilePhoto: {
       type: String,
       default: 'https://res.cloudinary.com/dzgz9xv5w/image/upload/v1587688826/panorama/default-user-icon_gkcwk1.jpg'
@@ -61,21 +65,21 @@ const userSchema = new mongoose.Schema(
       default: 'user'
     },
     photographer: new mongoose.Schema({
-      bio: {
+      introduction: {
         type: String,
-        required: [true, 'A bio can not be blank!'],
+        required: [true, 'A introduction can not be blank!'],
         trim: true,
-        maxLength: [250, 'A bio can not be longer than 250 characters!'],
-        minLength: [100, 'A bio can not be shorter than 100 characters!']
+        maxLength: [250, 'A introduction can not be longer than 250 characters!'],
+        minLength: [100, 'A introduction can not be shorter than 100 characters!']
       },
       languages: [String],
-      locations: {
-        type: [[Number]],
+      location: {
+        type: [Number],
         required: [true, 'Photographer must have a location!']
       },
-      specialties: {
+      categories: {
         type: [String],
-        required: [true, 'A bio can not be blank!']
+        required: [true, 'Categories can not be blank!']
       },
       ratingsQuantity: {
         type: Number,
@@ -157,6 +161,7 @@ userSchema.methods.correctPassword = async function(
   candidatePassword,
   userPassword
 ) {
+  console.log(await bcrypt.compare(candidatePassword, userPassword))
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
