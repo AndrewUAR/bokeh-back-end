@@ -1,3 +1,4 @@
+const Joi = require('@hapi/joi');
 const factory = require('./handlerFactory');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
@@ -18,7 +19,7 @@ exports.getPhotographer = catchAsync(async (req, res, next) => {
   });
 });
 
-const allowedFields = ['bio', 'languages', 'locations', 'specialties'];
+const allowedFields = ['introduction', 'languages', 'location', 'categories'];
 
 exports.createPhotographerProfile = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.params.id);
@@ -40,13 +41,29 @@ exports.createPhotographerProfile = catchAsync(async (req, res, next) => {
       )
     );
   }
-  const filteredBody = { photographer: filterObj(req.body, allowedFields) };
+
+  const schema = Joi.object().keys({
+    introduction: Joi.string().required(),
+    categories: Joi.array().required(),
+    languages: Joi.array().required(),
+    location: Joi.object().required(),
+    payPal: Joi.string().required()
+  });
+
+  const userData = await schema.validateAsync(req.body);
+
+  const filteredBody = { photographer: userData };
   filteredBody.role = 'photographer';
 
-  const updatedUser = await User.findByIdAndUpdate(req.params.id, filteredBody);
+  const photographer = await User.findByIdAndUpdate(req.params.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
   res.status(201).json({
     status: 'success',
-    data: updatedUser
+    data: {
+      user: photographer
+    }
   });
 });
 
@@ -90,7 +107,7 @@ exports.activateProfile = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deactivatePhotographerProfile = catchAsync(async (req, res, next) => {
+exports.deactivateProfile = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.params.id);
   if (!user) {
     return next(new AppError('No user found with that ID', 404));
