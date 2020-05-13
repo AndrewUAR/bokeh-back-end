@@ -7,9 +7,16 @@ const handleCastErrorDB = err => {
 };
 
 const handleDuplicateFieldsDB = err => {
-  const message = `Duplicate field value: ${Object.values(
-    err.keyValue
-  )}. Please use another value!`;
+  let message;
+  if ('email' in err.keyValue){
+    message = `User with email ${Object.values(
+      err.keyValue
+    )} already exists.`;
+  } else {
+    message = `Duplicate field value: ${Object.values(
+      err.keyValue
+    )}. Please use another value!`;
+  }
   return new AppError(message, 400);
 };
 
@@ -52,7 +59,7 @@ const sendErrorProd = (err, req, res) => {
     console.log('ERROR', err);
     return res.status(500).json({
       status: 'error',
-      message: 'Something went very wrong!'
+      message: `Something went very wrong!`
     });
   }
 
@@ -71,6 +78,7 @@ const sendErrorProd = (err, req, res) => {
 };
 
 module.exports = (err, req, res, next) => {
+  console.log(err)
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
   if (process.env.NODE_ENV === 'development') {
