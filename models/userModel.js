@@ -29,10 +29,6 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, 'Please provide a valid email!']
     },
-    emailConfirmed: {
-      type: Boolean,
-      default: false
-    },
     profilePhoto: {
       type: String,
       default: 'https://res.cloudinary.com/dzgz9xv5w/image/upload/v1587688826/panorama/default-user-icon_gkcwk1.jpg'
@@ -65,37 +61,48 @@ const userSchema = new mongoose.Schema(
       default: 'user'
     },
     photographer: new mongoose.Schema({
-      introduction: {
-        type: String,
-        required: [true, 'A introduction can not be blank!'],
-        trim: true,
-        maxLength: [250, 'A introduction can not be longer than 250 characters!'],
-        minLength: [100, 'A introduction can not be shorter than 100 characters!']
-      },
-      languages: [String],
-      location: {
-        type: [Number],
-        required: [true, 'Photographer must have a location!']
-      },
-      categories: {
-        type: [String],
-        required: [true, 'Categories can not be blank!']
-      },
-      ratingsQuantity: {
-        type: Number,
-        default: 0
-      },
-      ratingsAverage: {
-        type: Number,
-        default: 5,
-        min: [1, 'Rating must be above 0.0'],
-        max: [5, 'Rating must be below 5.0'],
-        set: val => Math.round(val * 10) / 10
-      },
-      hired: {
-        type: Number,
-        default: 0
-      }
+        introduction: {
+          type: String,
+          required: [true, 'An introduction can not be blank!'],
+          trim: true,
+          maxLength: [250, 'An introduction can not be longer than 250 characters!'],
+          minLength: [100, 'An introduction can not be shorter than 100 characters!']
+        },
+        languages: {
+          type: [String],
+          required: [true, 'Please choose at least one language']
+        },
+        categories: {
+          type: [String],
+          required: [true, 'Categories can not be blank!']
+        },
+        location: {
+          coordinates: [Number],
+          placeName: String
+        },
+        payPal: {
+          type: String,
+          required: [true, 'Please provide your email address for PayPal!'],
+          trim: true,
+          lowercase: true,
+          validate: [validator.isEmail, 'Please provide a valid email!'],
+          select: false
+        },
+        ratingsQuantity: {
+          type: Number,
+          default: 0
+        },
+        ratingsAverage: {
+          type: Number,
+          default: 5,
+          min: [1, 'Rating must be above 0.0'],
+          max: [5, 'Rating must be below 5.0'],
+          set: val => Math.round(val * 10) / 10
+        },
+        hired: {
+          type: Number,
+          default: 0
+        }
     }),
     hideProfile: {
       type: Boolean,
@@ -106,7 +113,7 @@ const userSchema = new mongoose.Schema(
     passwordResetExpires: Date,
     active: {
       type: Boolean,
-      default: true,
+      default: false,
       select: false
     }
   },

@@ -1,8 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const helmet = require('helmet');
+const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
-
 const cloudinary = require('cloudinary');
 const rateLimit = require('express-rate-limit');
 const userRouter = require('./routes/userRoutes');
@@ -11,6 +12,7 @@ const photoSessionRouter = require('./routes/photoSessionRoutes');
 const photographerRouter = require('./routes/photographerRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
+const thirdPartyAPIRoutes = require('./routes/thirdPartyAPIRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
@@ -32,6 +34,8 @@ app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
 // app.options('*', cors());
 
 app.use(cookieParser());
+app.use(helmet());
+app.use(xss());
 
 // app.use((req, res) => {
 //   console.log('here');
@@ -47,13 +51,14 @@ cloudinary.config({
 });
 
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 if (process.env.NODE_ENV !== 'development') {
   app.use(morgan('dev'));
 }
 
 const limiter = rateLimit({
-  max: 100,
+  max: 500,
   windows: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour'
 });
@@ -71,6 +76,7 @@ app.use('/api/v1/photographers', photographerRouter);
 app.use('/api/v1/photoSessions', photoSessionRouter);
 app.use('/api/v1/albums', albumRouter);
 app.use('/api/v1/bookings', bookingRouter);
+app.use('/api/v1/data', thirdPartyAPIRoutes);
 
 app.use(globalErrorHandler);
 

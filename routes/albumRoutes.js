@@ -1,6 +1,7 @@
 const express = require('express');
 const albumController = require('../controllers/albumController');
 const authController = require('../controllers/authController');
+const userController = require('../controllers/userController')
 
 const router = express.Router();
 
@@ -8,22 +9,25 @@ router.use(authController.protect);
 
 router
   .route('/')
-  .get(albumController.getAllAlbums)
-  .post(albumController.createAlbum);
+  .get(userController.getMe, albumController.getAllMyAlbums)
+  // .get(authController.restrictTo('photographer'), albumController.setPhotographerId, albumController.getAllAlbums)
+  .post(authController.restrictTo('photographer'), albumController.setPhotographerId, albumController.createAlbum);
+
+
 
 router
   .route('/:id')
   .get(albumController.getAlbum)
-  .patch(albumController.updateAlbum)
-  .delete(albumController.deleteAlbum);
+  .patch(authController.restrictTo('photographer'), albumController.updateAlbum)
+  .delete(authController.restrictTo('photographer'), albumController.deleteAlbumImage, albumController.deleteAlbum);
 
 router.patch(
-  '/:id/uploadImage',
+  '/:id/uploadImages',
   albumController.uploadAlbumImages,
   albumController.resizeAlbumImages,
   albumController.updateAlbumImage
 );
 
-router.patch('/:id/deleteImage', albumController.deleteAlbumImage);
+router.patch('/:id/deleteImages', albumController.deleteAlbumImage);
 
 module.exports = router;

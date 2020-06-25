@@ -1,24 +1,34 @@
 const axios = require('axios');
-const utf8 = require('utf8');
-const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
 
-exports.getData = catchAsync(async (req, res, next) => {
-  console.log(req.body)
-  const place = utf8.encode(req.body.place);
-  console.log(place)
+exports.getPlaces = catchAsync(async (req, res, next) => {
+  const place = req.body.place;
   let results;
   if (place) {
     results = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}&cachebuster=1588883251539&autocomplete=true&types=place&limit=5&language=en`);
-    console.log(results.data.features)
     const pickAddress = (item) => {
-      return _.pick(item, ['place_name', 'center'])
+      const { place_name: placeName, center: coordinates} = _.pick(item, ['place_name', 'center']);
+      return { placeName, coordinates }
     }
     const response = _.map(results.data.features, pickAddress);
     res.status('200').json({
       status: 'success',
       data: response
     });
+  };
+});
+
+exports.getMyPlace = catchAsync(async (req, res, next) => {
+  const coordinates = req.body;
+  let result;
+  if (coordinates.lat) {
+    const { lat, lng } = req.body;
+    result = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}&types=place`);
   }
+  const response = result.data.features[0].place_name;
+  res.status('200').json({
+    status: 'success',
+    data: response
+  });
 })

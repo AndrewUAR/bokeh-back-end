@@ -30,6 +30,7 @@ exports.uploadAlbumImages = upload.fields([{ name: 'images', maxCount: 10 }]);
 
 exports.resizeAlbumImages = catchAsync(async (req, res, next) => {
   if (!req.files) return next();
+  console.log('files', req.files)
   const files = req.files.images.map(img => {
     return dataUri(img).content;
   });
@@ -71,6 +72,7 @@ exports.updateAlbumImage = catchAsync(async (req, res, next) => {
 
 exports.deleteAlbumImage = catchAsync(async (req, res, next) => {
   if (!req.body.images) next();
+  console.log('images', req.body.images)
   const images = req.body.images.map(img => {
     return img.match(/([a-zA-Z0-9]+-[0-9]{9,})/g);
   });
@@ -95,9 +97,31 @@ exports.deleteAlbumImage = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.getAllAlbums = factory.getAll(Album);
+exports.getAllAlbums = factory.getAll(Album, 'photographer');
+
+exports.getAllMyAlbums = catchAsync(async (req, res, next) => {
+  const albums = await Album.find({'photographer': req.user.id});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      albums
+    }
+  });
+})
 
 exports.getAlbum = factory.getOne(Album);
+
+exports.setPhotographerId = (req, res, next) => {
+  req.body.photographer = req.user.id;
+  next();
+};
+
+// exports.updateMyAlbum = catchAsync(async (req, res, next) => {
+//   let album = await Album.findById(req.params.id);
+//   if (album.photographer === req.user.id) {
+//     album = await Album.
+//   }
+// })
 
 exports.createAlbum = factory.createOne(Album);
 

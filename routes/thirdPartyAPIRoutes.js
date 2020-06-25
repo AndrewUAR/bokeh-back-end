@@ -3,6 +3,8 @@ const thirdPartyAPIController = require('../controllers/thirdPartyAPIController'
 
 const router = express.Router();
 
-router.route('/').post(thirdPartyAPIController.getData);
+router.route('/getPlaces').post(thirdPartyAPIController.getPlaces);
+router.route('/getMyPlace').post(thirdPartyAPIController.getMyPlace);
+
 
 module.exports = router;

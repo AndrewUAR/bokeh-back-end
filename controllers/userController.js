@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+const Joi = require('@hapi/joi');
 const cloudinary = require('cloudinary');
 const Datauri = require('datauri');
 const User = require('../models/userModel');
@@ -55,13 +56,20 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       )
     );
   }
-  const allowedFields = ['firstName', 'lastName', 'email'];
-  const filteredBody = filterObj(req.body, allowedFields);
+
+  const schema = Joi.object().keys({
+    firstName: Joi.string().optional(),
+    lastName: Joi.string().optional(),
+    email: Joi.string().optional()
+  });
+
+  const userData = await schema.validateAsync(req.body);
+
   if (req.file) {
-    filteredBody.profilePhoto = req.file.secure_url
+    userData.profilePhoto = req.file.secure_url
     console.log('here2')
   };
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, userData, {
     new: true,
     runValidators: true
   });
@@ -84,6 +92,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 });
 
 exports.getMe = (req, res, next) => {
+  console.log('in get me')
   req.params.id = req.user.id;
   next();
 };

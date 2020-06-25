@@ -1,10 +1,12 @@
 const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
+const Joi = require('@hapi/joi');
+const _ = require('lodash');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -24,6 +26,8 @@ const createSendToken = (user, statusCode, req, res) => {
 
   user.password = undefined;
   // user = (({firstName, lastName, email, _id, profilePhoto, role}) => ({firstName, lastName, email, _id, profilePhoto, role}))(user);
+  // user = _.omit(user, ['password', 'photographer']);
+
 
   res.status(statusCode).json({
     status: 'success',
@@ -34,17 +38,37 @@ const createSendToken = (user, statusCode, req, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    role: req.body.role,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    passwordChangedAt: req.body.passwordChangeAt
-  });
 
-  createSendToken(newUser, 201, req, res);
+  const schema = Joi.object().keys({
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    email: Joi.string().required(),
+    role: Joi.string().optional(),
+    password: Joi.string().required(),
+    passwordConfirm: Joi.string().required(),
+    passwordChangedAt: Joi.date().optional()
+  })
+
+  const user = await schema.validateAsync(req.body);
+  const newUser = await User.create(user);
+
+  // const newUser = await User.create({
+  //   firstName: req.body.firstName,
+  //   lastName: req.body.lastName,
+  //   email: req.body.email,
+  //   role: req.body.role,
+  //   password: req.body.password,
+  //   passwordConfirm: req.body.passwordConfirm,
+  //   passwordChangedAt: req.body.passwordChangeAt
+  // });
+  const url = `${req.protocol}://${req.get('host')}/confirmEmail/${newUser.id}`;
+  console.log(url);
+  await new Email(newUser, url).sendWelcome();
+  res.status(200).json({ 
+    status: 'success',
+    message: 'Account was successfully created. Please confirm your email.'
+  });
+  // createSendToken(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -52,7 +76,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
-  const user = await User.findOne({ email }).select('+password -favoritePhotographers -__v');
+  const user = await User.findOne({ email }).select('+password -__v +hideProfile');
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
@@ -121,6 +145,7 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('User recently changed password! Please log in again.', 401)
     );
   }
+  console.log('current')
   req.user = currentUser;
   res.locals.user = currentUser;
   next();
@@ -138,9 +163,10 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.forgotPassword = async (req, res, next) => {
+  console.log(req.body)
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return next(new AppError('There is no user with email address.', 404));
+    return next(new AppError('There is no user registered with this email.', 404));
   }
 
   const resetToken = user.createPasswordResetToken();
@@ -149,13 +175,9 @@ exports.forgotPassword = async (req, res, next) => {
   const resetURL = `${req.protocol}://${req.get(
     'host'
   )}/api/v1/users/resetPassword/${resetToken}`;
-
+  console.log(resetURL)
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your token',
-      message: resetURL
-    });
+    await new Email(user, resetURL).sendPasswordReset();
     res.status(200).json({
       status: 'success',
       message: 'Token sent to email!'
@@ -200,11 +222,28 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select('+password');
-  if (!user.correctPassword(req.body.passwordCurrent, user.password)) {
-    return next(new AppError('Your current password is wrong', 401));
+  if (!await user.correctPassword(req.body.passwordCurrent, user.password)) {
+    return next(new AppError('Current password is invalid', 401));
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
   createSendToken(user, 200, req, res);
+  
 });
+
+exports.confirmEmail = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id).select('+active');
+  if (!user) {
+    return next(new AppError('No user was found.', 404));
+  }
+  console.log(user)
+  if (user.active) {
+    return next(new AppError('User account was already activated', 403));
+  }
+  await user.updateOne({active: true});
+  res.status(200).json({
+    status: 'success',
+    message: 'Account was successfully activated! Please log in!'
+  });
+})

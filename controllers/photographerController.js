@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const filterObj = require('../utils/filterObj');
 
-exports.getAllPhotographers = factory.getAll(User, 'photographer');
+exports.getAllPhotographers = factory.getAll(User, {role: 'photographer'});
 
 exports.getPhotographer = catchAsync(async (req, res, next) => {
   const query = User.findById(req.params.id);
@@ -61,9 +61,7 @@ exports.createPhotographerProfile = catchAsync(async (req, res, next) => {
   });
   res.status(201).json({
     status: 'success',
-    data: {
-      user: photographer
-    }
+    data: photographer
   });
 });
 
@@ -82,7 +80,10 @@ exports.updatePhotographerProfile = catchAsync(async (req, res, next) => {
   }
   const filteredBody = { photographer: filterObj(req.body, allowedFields) };
 
-  const updatedUser = await User.findByIdAndUpdate(req.params.id, filteredBody);
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
   res.status(201).json({
     status: 'success',
     data: updatedUser
@@ -118,7 +119,10 @@ exports.deactivateProfile = catchAsync(async (req, res, next) => {
     );
   }
   const body = { role: 'user', hideProfile: true };
-  const updatedUser = await User.findByIdAndUpdate(req.params.id, body);
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, body, {
+    runValidators: true
+  });
+
   res.status(201).json({
     status: 'success',
     data: updatedUser

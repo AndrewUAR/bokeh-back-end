@@ -1,10 +1,10 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
-exports.getAll = (Model, userRole) =>
+exports.getAll = (Model, query) =>
   catchAsync(async (req, res, next) => {
-    const role = userRole ? { role: userRole } : {};
-    const documents = await Model.find(role);
+    // const query = userRole ? { role: userRole } : {photographer: req.body.photographer};
+    const documents = await Model.find(query);
 
     res.status(200).json({
       status: 'success',
@@ -16,17 +16,15 @@ exports.getAll = (Model, userRole) =>
 exports.getOne = (Model, popOptions) =>
   catchAsync(async (req, res, next) => {
     let query = Model.findById(req.params.id);
+    
     if (popOptions) query = query.populate(popOptions);
     const document = await query;
-
     if (!document) {
       return next(new AppError('No document found with that ID', 404));
     }
     res.status(200).json({
       status: 'success',
-      data: {
-        document
-      }
+      data: document
     });
   });
 
@@ -35,9 +33,7 @@ exports.createOne = Model =>
     const document = await Model.create(req.body);
     res.status(201).json({
       status: 'success',
-      data: {
-        document
-      }
+      data: document
     });
   });
 

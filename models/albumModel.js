@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const albumSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
     required: [true, 'Album must have a name!']
   },
