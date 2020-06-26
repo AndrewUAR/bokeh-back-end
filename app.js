@@ -26,7 +26,7 @@ const app = express();
 //   })
 // );
 
-app.use(cors({credentials: true, origin: 'https://mypanorama.netlify.app'}));
+app.use(cors({credentials: true, origin: ['https://mypanorama.netlify.app', 'https://d1hhdxamuic6it.cloudfront.net']}));
 // var corsOptions = {
 //   origin: 'http://localhost:3000'
 // }
