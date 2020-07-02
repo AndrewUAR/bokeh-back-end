@@ -17,6 +17,9 @@ const bookingRouter = require('./routes/bookingRoutes');
 const thirdPartyAPIRoutes = require('./routes/thirdPartyAPIRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 
+
+var appURL = "https://mypanorama.netlify.app/";
+
 const app = express();
 
 app.enable('trust proxy');
@@ -40,6 +43,14 @@ app.use(
     ]
   })
 );
+
+app.all('*', function(req, res, next) {
+
+  res.setHeader("Access-Control-Allow-Origin", appURL);
+  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  next();
+});
 
 app.use(cookieParser());
 app.use(helmet());
