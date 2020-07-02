@@ -6,10 +6,10 @@ const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary');
 const compression = require('compression');
+const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
-const mongoSanitize = require('express-mongo-sanitize');
 const photoSessionRouter = require('./routes/photoSessionRoutes');
 const photographerRouter = require('./routes/photographerRoutes');
 const albumRouter = require('./routes/albumRoutes');
@@ -28,7 +28,18 @@ const app = express();
 //   })
 // );
 
-app.use(cors({credentials: true, origin: ['https://mypanorama.netlify.app', 'https://d1hhdxamuic6it.cloudfront.net', 'http://localhost:3000']}));
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      'https://mypanorama.netlify.app',
+      'https://d1hhdxamuic6it.cloudfront.net',
+      'http://localhost:3000'
+    ],
+    preflightContinue: false,
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+);
 
 app.use(cookieParser());
 app.use(helmet());
