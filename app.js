@@ -18,7 +18,7 @@ const thirdPartyAPIRoutes = require('./routes/thirdPartyAPIRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 
 
-var appURL = "https://mypanorama.netlify.app/";
+var appURL = "https://mypanorama.netlify.app";
 
 const app = express();
 
