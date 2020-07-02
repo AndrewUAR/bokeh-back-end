@@ -46,11 +46,11 @@ server.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
-const global = (io) => {
+const global = io => {
   io.on('connection', (socket) => {
-    console.log('connected')
+    console.log('connected');
     socket.on('refresh', () => {
-      io.emit('refreshPage', {})
+      io.emit('refreshPage', {});
     });
   });
 }

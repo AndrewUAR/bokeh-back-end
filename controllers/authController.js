@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const Joi = require('@hapi/joi');
-const _ = require('lodash');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
@@ -17,6 +16,7 @@ const signToken = id => {
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
   res.cookie('jwt', token, {
+    domain: 'photopanorama.herokuapp.com',
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
@@ -36,7 +36,6 @@ const createSendToken = (user, statusCode, req, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-
   const schema = Joi.object().keys({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
@@ -45,7 +44,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: Joi.string().required(),
     passwordConfirm: Joi.string().required(),
     passwordChangedAt: Joi.date().optional()
-  })
+  });
 
   const user = await schema.validateAsync(req.body);
   const newUser = await User.create(user);
@@ -60,9 +59,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   //   passwordChangedAt: req.body.passwordChangeAt
   // });
   const url = `${req.protocol}://${req.get('host')}/confirmEmail/${newUser.id}`;
-  console.log(url);
   await new Email(newUser, url).sendWelcome();
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'success',
     message: 'Account was successfully created. Please confirm your email.'
   });
@@ -74,7 +72,9 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
-  const user = await User.findOne({ email }).select('+password -__v +hideProfile');
+  const user = await User.findOne({ email }).select(
+    '+password -__v +hideProfile'
+  );
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
@@ -143,7 +143,6 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('User recently changed password! Please log in again.', 401)
     );
   }
-  console.log('current')
   req.user = currentUser;
   res.locals.user = currentUser;
   next();
@@ -161,10 +160,11 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.forgotPassword = async (req, res, next) => {
-  console.log(req.body)
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return next(new AppError('There is no user registered with this email.', 404));
+    return next(
+      new AppError('There is no user registered with this email.', 404)
+    );
   }
 
   const resetToken = user.createPasswordResetToken();
@@ -173,7 +173,6 @@ exports.forgotPassword = async (req, res, next) => {
   const resetURL = `${req.protocol}://${req.get(
     'host'
   )}/api/v1/users/resetPassword/${resetToken}`;
-  console.log(resetURL)
   try {
     await new Email(user, resetURL).sendPasswordReset();
     res.status(200).json({
@@ -220,14 +219,13 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select('+password');
-  if (!await user.correctPassword(req.body.passwordCurrent, user.password)) {
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
     return next(new AppError('Current password is invalid', 401));
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
   createSendToken(user, 200, req, res);
-  
 });
 
 exports.confirmEmail = catchAsync(async (req, res, next) => {
@@ -235,13 +233,12 @@ exports.confirmEmail = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError('No user was found.', 404));
   }
-  console.log(user)
   if (user.active) {
     return next(new AppError('User account was already activated', 403));
   }
-  await user.updateOne({active: true});
+  await user.updateOne({ active: true });
   res.status(200).json({
     status: 'success',
     message: 'Account was successfully activated! Please log in!'
   });
-})
+});
