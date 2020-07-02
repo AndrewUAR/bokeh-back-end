@@ -5,9 +5,11 @@ const helmet = require('helmet');
 const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const mongoSanitize = require('express-mongo-sanitize');
 const photoSessionRouter = require('./routes/photoSessionRoutes');
 const photographerRouter = require('./routes/photographerRoutes');
 const albumRouter = require('./routes/albumRoutes');
@@ -27,22 +29,10 @@ const app = express();
 // );
 
 app.use(cors({credentials: true, origin: ['https://mypanorama.netlify.app', 'https://d1hhdxamuic6it.cloudfront.net', 'http://localhost:3000']}));
-// var corsOptions = {
-//   origin: 'http://localhost:3000'
-// }
-
-// app.options('*', cors());
 
 app.use(cookieParser());
 app.use(helmet());
 app.use(xss());
-
-// app.use((req, res) => {
-//   console.log('here');
-//   const store = createStore(reducer, undefined, autoRehydrate());
-//   console.log(store)
-//   persistStore(store, { storage: new CookieStorage({ cookies: req.cookies }) })
-// })
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -64,6 +54,9 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter);
+
+app.use(compression());
+app.use(mongoSanitize());
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();

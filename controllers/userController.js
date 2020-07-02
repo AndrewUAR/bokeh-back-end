@@ -67,7 +67,6 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   if (req.file) {
     userData.profilePhoto = req.file.secure_url
-    console.log('here2')
   };
   const updatedUser = await User.findByIdAndUpdate(req.user.id, userData, {
     new: true,
@@ -92,7 +91,6 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 });
 
 exports.getMe = (req, res, next) => {
-  console.log('in get me')
   req.params.id = req.user.id;
   next();
 };
