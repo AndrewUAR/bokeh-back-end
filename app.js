@@ -35,9 +35,7 @@ app.use(
       'https://mypanorama.netlify.app',
       'https://d1hhdxamuic6it.cloudfront.net',
       'http://localhost:3000'
-    ],
-    preflightContinue: false,
-    allowedHeaders: ['Content-Type', 'Authorization']
+    ]
   })
 );
 
