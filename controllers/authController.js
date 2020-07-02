@@ -17,7 +17,6 @@ const signToken = id => {
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
   res.cookie('jwt', token, {
-    domain: 'www.mypanorama.netlify.app',
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
@@ -28,8 +27,6 @@ const createSendToken = (user, statusCode, req, res) => {
   user.password = undefined;
   // user = (({firstName, lastName, email, _id, profilePhoto, role}) => ({firstName, lastName, email, _id, profilePhoto, role}))(user);
   // user = _.omit(user, ['password', 'photographer']);
-
-
   res.status(statusCode).json({
     status: 'success',
     data: {
