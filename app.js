@@ -30,19 +30,16 @@ app.enable('trust proxy');
 //   })
 // );
 
-// app.use(
-//   cors({
-//     credentials: true,
-//     origin: [
-//       'https://mypanorama.netlify.app',
-//       'https://d1hhdxamuic6it.cloudfront.net',
-//       'http://localhost:3000'
-//     ]
-//   })
-// );
-
-app.use(cors());
-app.options('*', cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      'https://mypanorama.netlify.app',
+      'https://d1hhdxamuic6it.cloudfront.net',
+      'http://localhost:3000'
+    ]
+  })
+);
 
 app.use(cookieParser());
 app.use(helmet());
