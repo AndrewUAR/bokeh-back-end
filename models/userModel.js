@@ -77,6 +77,11 @@ const userSchema = new mongoose.Schema(
           required: [true, 'Categories can not be blank!']
         },
         location: {
+          type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']
+          },
           coordinates: [Number],
           placeName: String
         },

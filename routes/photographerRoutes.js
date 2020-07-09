@@ -5,7 +5,6 @@ const userController = require('../controllers/userController');
 
 const router = express.Router();
 
-router.route('/').get(photographerController.getAllPhotographers);
 
 
 router.get(
@@ -14,8 +13,9 @@ router.get(
   authController.restrictTo('photographer'),
   userController.getMe,
   photographerController.getPhotographer
-  );
+);
   
+router.route('/photographers-within').post(photographerController.getAllPhotographersWithin);
 router.route('/:id').get(photographerController.getPhotographer);
 
 router.use(authController.protect);

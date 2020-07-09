@@ -12,6 +12,7 @@ exports.getPlaces = catchAsync(async (req, res, next) => {
       return { placeName, coordinates }
     }
     const response = _.map(results.data.features, pickAddress);
+    console.log(results.data);
     res.status('200').json({
       status: 'success',
       data: response
@@ -21,11 +22,14 @@ exports.getPlaces = catchAsync(async (req, res, next) => {
 
 exports.getMyPlace = catchAsync(async (req, res, next) => {
   const coordinates = req.body;
+  console.log('controller', coordinates);
   let result;
-  if (coordinates.lat) {
-    const { lat, lng } = req.body;
+  if (coordinates.length > 0) {
+    const lng  = coordinates[0];
+    const lat = coordinates[1];
     result = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}&types=place`);
   }
+  console.log(result.data.features[0]);
   const response = result.data.features[0].place_name;
   res.status('200').json({
     status: 'success',

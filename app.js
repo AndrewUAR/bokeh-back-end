@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const xss = require('xss-clean');
+const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary');
 const compression = require('compression');
@@ -17,21 +18,9 @@ const bookingRouter = require('./routes/bookingRoutes');
 const thirdPartyAPIRoutes = require('./routes/thirdPartyAPIRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 
-
-var appURL = "https://mypanorama.netlify.app";
-
 const app = express();
 
 app.enable('trust proxy');
-
-// app.use(cors());
-
-// app.use(
-//   cors({
-//     origin: 'https://localhost:3000',
-//     credentials: true
-//   })
-// );
 
 app.use(
   cors({
@@ -44,17 +33,21 @@ app.use(
   })
 );
 
-app.all('*', function(req, res, next) {
-
-  res.setHeader("Access-Control-Allow-Origin", appURL);
-  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  next();
-});
-
 app.use(cookieParser());
 app.use(helmet());
 app.use(xss());
+
+app.use(
+  hpp({
+    whitelist: [
+      // 'firstName',
+      // 'photographer',
+      // 'photographer[ratingsQuantity]',
+      // 'photographer[ratingsAverage]',
+      // 'price'
+    ]
+  })
+);
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

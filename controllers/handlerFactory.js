@@ -1,10 +1,19 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.getAll = (Model, query) =>
   catchAsync(async (req, res, next) => {
+    // let filter = {};
     // const query = userRole ? { role: userRole } : {photographer: req.body.photographer};
-    const documents = await Model.find(query);
+    console.log(req.query)
+    const features = new APIFeatures(Model.find(query), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+
+    const documents = await features.query;
 
     res.status(200).json({
       status: 'success',
