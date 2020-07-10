@@ -85,6 +85,8 @@ const userSchema = new mongoose.Schema(
           coordinates: [Number],
           placeName: String
         },
+        pricePerHour: Number,
+        responseRate: Number,
         payPal: {
           type: String,
           required: [true, 'Please provide your email address for PayPal!'],

@@ -60,7 +60,22 @@ exports.getAllPhotographersWithin = catchAsync(async (req, res, next) => {
   const lng = coordinates[0];
   const lat = coordinates[1];
 
+  // 'photographer.pricePerHour': {$gte: priceRange[0], $lte: priceRange[1]}
+
   const query = {};
+  const sortBy = {};
+
+  if (sort === 'price') {
+    sortBy['photographer.price'] = 1
+  } else if (sort === '-price') {
+    sortBy['photographer.price'] = -1
+  } else if (sort === 'rating') {
+    sortBy['photographer.rating'] = 1
+  } else if (sort === '-rating') {
+    sortBy['photographer.rating'] = -1
+  } else {
+    sortBy['fromMe'] = 1
+  }
 
   if (rating) {
     query["photographer.ratingsAverage"] = {
@@ -80,6 +95,8 @@ exports.getAllPhotographersWithin = catchAsync(async (req, res, next) => {
     };
   };
 
+  console.log(query)
+
   const photographers = await User.aggregate([{
     $geoNear: {
       near: {
@@ -92,9 +109,7 @@ exports.getAllPhotographersWithin = catchAsync(async (req, res, next) => {
       spherical: true
     }
   }, {
-    $sort: {
-      "photographer.ratingsAverage": 1
-    }
+    $sort: sortBy
   }, {
     $group: {
       _id: null,
@@ -110,7 +125,7 @@ exports.getAllPhotographersWithin = catchAsync(async (req, res, next) => {
   }, {
     $skip: resultsPerPage * (page - 1)
   }, {
-    $limit: resultsPerPage
+    $limit: resultsPerPage * 1
   }, {
     $group: {
       _id: null,
