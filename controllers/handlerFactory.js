@@ -40,6 +40,7 @@ exports.getOne = (Model, popOptions) =>
 exports.createOne = Model =>
   catchAsync(async (req, res, next) => {
     const document = await Model.create(req.body);
+    console.log(document);
     res.status(201).json({
       status: 'success',
       data: document

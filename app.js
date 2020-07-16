@@ -37,18 +37,6 @@ app.use(cookieParser());
 app.use(helmet());
 app.use(xss());
 
-app.use(
-  hpp({
-    whitelist: [
-      // 'firstName',
-      // 'photographer',
-      // 'photographer[ratingsQuantity]',
-      // 'photographer[ratingsAverage]',
-      // 'price'
-    ]
-  })
-);
-
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,

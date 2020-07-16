@@ -38,8 +38,8 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   console.log(req.file)
   const file = dataUri(req).content;
   req.file = await cloudinary.v2.uploader.upload(file, {
-    public_id: `bokeh/users/user-${req.user.id}-${Date.now()}`,
-    gravity: 'face',
+    public_id: `panorama/users/user-${req.user.id}-${Date.now()}`,
+    // gravity: 'face',
     width: 500,
     height: 500,
     crop: 'thumb'

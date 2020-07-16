@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+const _ = require('lodash');
 const cloudinary = require('cloudinary');
 const Datauri = require('datauri');
 const Album = require('../models/albumModel');
@@ -37,9 +38,9 @@ exports.resizeAlbumImages = catchAsync(async (req, res, next) => {
   const uploadedFiles = await Promise.all(
     files.map(file => {
       return cloudinary.v2.uploader.upload(file, {
-        public_id: `bokeh/users-album/user-${req.user.id}/${
+        public_id: `panorama/users-album/user-${req.user.id}/${
           req.user.id
-        }-${Date.now()}}`
+        }-${Date.now()}`
       });
     })
   );
@@ -71,10 +72,11 @@ exports.updateAlbumImage = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteAlbumImage = catchAsync(async (req, res, next) => {
-  if (!req.body.images) next();
-  console.log('images', req.body.images)
+  if (!req.body.images || _.isEmpty(req.body.images)) {
+    next();
+  }
   const images = req.body.images.map(img => {
-    return img.match(/([a-zA-Z0-9]+-[0-9]{9,})/g);
+    return img.match(/(panorama.*)\./)[1];
   });
 
   await Promise.all(
@@ -116,15 +118,35 @@ exports.setPhotographerId = (req, res, next) => {
   next();
 };
 
-// exports.updateMyAlbum = catchAsync(async (req, res, next) => {
-//   let album = await Album.findById(req.params.id);
-//   if (album.photographer === req.user.id) {
-//     album = await Album.
-//   }
-// })
+exports.deleteAlbum = catchAsync(async (req, res, next) => {
+  let album = await Album.findByIdAndDelete(req.params.id);
+  const images = album.images;
+  
+  if (!_.isEmpty(images)) {
+    const imagesPublicIds = images.map(img => {
+      return img.match(/(panorama.*)\./)[1];
+    });
+
+    await Promise.all(
+      imagesPublicIds.map(publicId => {
+        return cloudinary.v2.uploader.destroy(publicId, result => {
+        });
+      })
+    );
+  }
+  
+  if (!album) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: null
+  });
+
+})
 
 exports.createAlbum = factory.createOne(Album);
 
 exports.updateAlbum = factory.updateOne(Album);
 
-exports.deleteAlbum = factory.deleteOne(Album);
+// exports.deleteAlbum = factory.deleteOne(Album);
