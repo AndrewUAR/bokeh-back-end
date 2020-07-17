@@ -49,15 +49,6 @@ exports.signup = catchAsync(async (req, res, next) => {
   const user = await schema.validateAsync(req.body);
   const newUser = await User.create(user);
 
-  // const newUser = await User.create({
-  //   firstName: req.body.firstName,
-  //   lastName: req.body.lastName,
-  //   email: req.body.email,
-  //   role: req.body.role,
-  //   password: req.body.password,
-  //   passwordConfirm: req.body.passwordConfirm,
-  //   passwordChangedAt: req.body.passwordChangeAt
-  // });
   const url = `${req.protocol}://${req.get('host')}/confirmEmail/${newUser.id}`;
   await new Email(newUser, url).sendWelcome();
   res.status(200).json({
