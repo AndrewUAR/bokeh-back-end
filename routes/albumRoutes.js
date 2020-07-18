@@ -5,21 +5,23 @@ const userController = require('../controllers/userController')
 
 const router = express.Router();
 
-router.use(authController.protect);
+
 
 router
   .route('/')
   .get(authController.restrictTo('photographer'), userController.getMe, albumController.getAllMyAlbums)
   // .get(authController.restrictTo('photographer'), albumController.setPhotographerId, albumController.getAllAlbums)
-  .post(authController.restrictTo('photographer'), albumController.setPhotographerId, albumController.createAlbum);
+  .post(authController.protect, authController.restrictTo('photographer'), authController.protect, albumController.setPhotographerId, albumController.createAlbum);
 
 
 
 router
   .route('/:id')
   .get(albumController.getAlbum)
-  .patch(authController.restrictTo('photographer'), albumController.updateAlbum)
-  .delete(authController.restrictTo('photographer'),  albumController.deleteAlbum);
+  .patch(authController.protect, authController.restrictTo('photographer'), albumController.updateAlbum)
+  .delete(authController.protect, authController.restrictTo('photographer'),  albumController.deleteAlbum);
+
+router.use(authController.protect);
 
 router.patch(
   '/:id/uploadImages',
