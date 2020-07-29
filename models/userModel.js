@@ -87,6 +87,15 @@ const userSchema = new mongoose.Schema(
         },
         pricePerHour: Number,
         responseRate: Number,
+        wholeDayEvent: Number,
+        availableDates: [
+          {
+            start: Date,
+            end: Date,
+            allDay: Boolean,
+            color: String
+          }
+        ],
         payPal: {
           type: String,
           required: [true, 'Please provide your email address for PayPal!'],
